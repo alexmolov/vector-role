@@ -1,0 +1,21 @@
+---
+- name: Create vector config directory
+  become: true
+  ansible.builtin.file:
+    path: "{{ vector_config_dir }}"
+    state: directory
+    mode: '0755'
+- name: Download Vector RPM package
+  ansible.builtin.get_url:
+    url: "{{ vector_download_url }}"
+    dest: "./{{ vector_package }}"
+    mode: '0644'
+- name: Install Vector package
+  become: true
+  ansible.builtin.dnf:
+    name: "./{{ vector_package }}"
+    state: present
+    disable_gpg_check: true
+  notify: Restart vector service
+- name: Flush handlers
+  ansible.builtin.meta: flush_handlers

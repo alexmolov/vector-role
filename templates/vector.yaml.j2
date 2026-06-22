@@ -1,0 +1,22 @@
+# templates/vector.yaml.j2
+sources:
+  test_source:
+    type: demo_logs
+    format: json
+    interval: {{ vector_interval | default(20) }}
+    lines:
+      - '{"message": "Hello it is vector message", "timestamp": "{{ ansible_date_time.iso8601 }}"}'
+
+sinks:
+  clickhouse:
+    type: clickhouse
+    inputs:
+      - test_source
+    endpoint: "http://{{ vector_clickhouse_host }}:8123"
+    database: "{{ vector_clickhouse_database }}"
+    table: "{{ vector_clickhouse_table }}"
+    compression: gzip
+    batch:
+      max_events: 1
+      timeout_secs: {{ vector_interval | default(20) }}
+    healthcheck: false

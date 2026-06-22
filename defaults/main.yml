@@ -5,5 +5,5 @@ vector_download_url: "https://packages.timber.io/vector/{{ vector_version }}/vec
 vector_config_dir: "/etc/vector"
 vector_config_file: "{{ vector_config_dir }}/vector.yaml"
 vector_clickhouse_host: "127.0.0.1"
-vector_clickhouse_database: "logs",
+vector_clickhouse_database: "logs"
 vector_clickhouse_table: "vector_message"

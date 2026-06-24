@@ -5,24 +5,42 @@
     path: "{{ vector_config_dir }}"
     state: directory
     mode: '0755'
-- name: Download Vector RPM package
+- name: Download Vector package (RedHat)
   ansible.builtin.get_url:
     url: "{{ vector_download_url }}"
     dest: "./{{ vector_package }}"
     mode: '0644'
-- name: Install Vector package
+  when: ansible_os_family == "RedHat"
+
+- name: Download Vector package (Debian)
+  ansible.builtin.get_url:
+    url: "{{ vector_download_url_debian }}"
+    dest: "/tmp/{{ vector_package_debian }}"
+    mode: '0644'
+  when: ansible_os_family == "Debian"
+
+- name: Install Vector package (RedHat)
   become: true
   ansible.builtin.dnf:
     name: "./{{ vector_package }}"
     state: present
     disable_gpg_check: true
+  when: ansible_os_family == "RedHat"
   notify: Restart vector service
+
+- name: Install Vector package (Debian)
+  become: true
+  ansible.builtin.apt:
+    deb: "/tmp/{{ vector_package_debian }}"
+  when: ansible_os_family == "Debian"
+  notify: Restart vector service
+
 - name: Flush handlers
   ansible.builtin.meta: flush_handlers
 - name: Deploy Vector configuration
   become: true
   ansible.builtin.template:
-    src: "{{ playbook_dir }}/templates/vector.yaml.j2"
+    src: "vector.yaml.j2"
     dest: "{{ vector_config_file }}"
     mode: '0644'
   notify: Restart vector service

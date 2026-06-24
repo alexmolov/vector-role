@@ -11,18 +11,50 @@
 * **Ansible >= 2.9**
 * **Python >= 3.6** на управляющем хосте
 * **DNF** пакетный менеджер на целевых хостах (CentOS 8+, RHEL 8+, Fedora)
+# Ansible Role: vector
+
+Роль для автоматической установки и настройки [Vector](https://vector.dev/) — высокопроизводительного сборщика и маршрутизатора логов и метрик.
+
+## Описание
+
+Роль выполняет полную установку Vector из официальных пакетов для различных дистрибутивов Linux и настраивает его для сбора логов с последующей отправкой в ClickHouse. Роль автоматизирует процесс скачивания пакета, установки, создания конфигурации и запуска сервиса. Поддерживает RedHat-совместимые системы (через DNF) и Debian-совместимые системы (через APT).
+
+## Требования
+
+* **Ansible >= 2.9**
+* **Python >= 3.6** на управляющем хосте
+* **DNF** (для RedHat-систем) или **APT** (для Debian-систем) на целевых хостах
 
 ## Переменные роли
 
 Все переменные для настройки роли хранятся в файле `defaults/main.yml`. Ниже приведена таблица с описанием каждой переменной.
 
+### Основные переменные
+
 | Имя | Значение по умолчанию | Описание |
 |-----|----------------------|----------|
-| `vector_version` | `"0.38.0"` | Версия Vector для установки |
-| `vector_package` | `"vector-{{ vector_version }}-1.x86_64.rpm"` | Имя RPM-пакета |
-| `vector_download_url` | `"https://packages.timber.io/vector/{{ vector_version }}/vector-{{ vector_version }}-1.x86_64.rpm"` | URL для скачивания пакета |
+| `vector_version` | `"0.39.0"` | Версия Vector для установки |
 | `vector_config_dir` | `"/etc/vector"` | Директория с конфигурацией Vector |
 | `vector_config_file` | `"{{ vector_config_dir }}/vector.yaml"` | Путь к файлу конфигурации |
+
+### Переменные для RedHat-совместимых систем (CentOS, RHEL, Fedora)
+
+| Имя | Значение по умолчанию | Описание |
+|-----|----------------------|----------|
+| `vector_package` | `"vector-{{ vector_version }}-1.x86_64.rpm"` | Имя RPM-пакета |
+| `vector_download_url` | `"https://packages.timber.io/vector/{{ vector_version }}/vector-{{ vector_version }}-1.x86_64.rpm"` | URL для скачивания RPM-пакета |
+
+### Переменные для Debian-совместимых систем (Ubuntu, Debian)
+
+| Имя | Значение по умолчанию | Описание |
+|-----|----------------------|----------|
+| `vector_package_debian` | `"vector_{{ vector_version }}-1_amd64.deb"` | Имя DEB-пакета |
+| `vector_download_url_debian` | `"https://packages.timber.io/vector/{{ vector_version }}/vector_{{ vector_version }}-1_amd64.deb"` | URL для скачивания DEB-пакета |
+
+### Переменные для ClickHouse
+
+| Имя | Значение по умолчанию | Описание |
+|-----|----------------------|----------|
 | `vector_clickhouse_host` | `"localhost"` | Хост ClickHouse для отправки логов |
 | `vector_clickhouse_database` | `"logs"` | Имя базы данных ClickHouse |
 | `vector_clickhouse_table` | `"vector_messages"` | Имя таблицы ClickHouse |
@@ -34,3 +66,4 @@
   become: true
   roles:
     - vector-role
+```

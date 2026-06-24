@@ -5,7 +5,7 @@ sources:
     format: json
     interval: {{ vector_interval | default(20) }}
     lines:
-      - '{"message": "Hello it is vector message", "timestamp": "{{ ansible_date_time.iso8601 }}"}'
+      - '{"message": "Hello it is vector message"}'
 
 sinks:
   clickhouse:

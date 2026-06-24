@@ -1,0 +1,57 @@
+---
+- name: Verify
+  hosts: all
+  become: true
+  gather_facts: true
+  tasks:
+    - name: Include role variables
+      ansible.builtin.include_vars:
+        file: "{{ playbook_dir }}/../../defaults/main.yml"
+        name: role_defaults
+      ignore_errors: true
+
+    - name: Set vector config variables
+      ansible.builtin.set_fact:
+        vector_config_dir: "{{ role_defaults.vector_config_dir | default('/etc/vector') }}"
+        vector_config_file: "{{ role_defaults.vector_config_file | default('/etc/vector/vector.yaml') }}"
+        vector_version: "{{ role_defaults.vector_version | default('0.39.0') }}"
+
+    - name: Check if Vector config file exists
+      ansible.builtin.stat:
+        path: "{{ vector_config_file }}"
+      register: config_file
+
+    - name: Assert that config file exists
+      ansible.builtin.assert:
+        that:
+          - config_file.stat.exists
+          - config_file.stat.mode == '0644'
+        fail_msg: "Vector config file {{ vector_config_file }} does not exist or has wrong permissions"
+        success_msg: "Vector config file exists and has correct permissions"
+
+    - name: Validate Vector configuration syntax
+      ansible.builtin.command:
+        cmd: vector validate --config-yaml "{{ vector_config_file }}"
+      register: validate_result
+      changed_when: false
+      ignore_errors: true
+
+    - name: Assert that Vector config is valid
+      ansible.builtin.assert:
+        that:
+          - validate_result.rc == 0
+        fail_msg: "Vector configuration is invalid: {{ validate_result.stderr }}"
+        success_msg: "Vector configuration is valid"
+
+    - name: Check if Vector service is running
+      ansible.builtin.systemd:
+        name: vector
+      register: service_status
+
+    - name: Assert that Vector service is running
+      ansible.builtin.assert:
+        that:
+          - service_status.status.ActiveState == "active"
+          - service_status.status.SubState == "running"
+        fail_msg: "Vector service is not running"
+        success_msg: "Vector service is running"
